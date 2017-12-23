@@ -12,6 +12,7 @@ bit_t E[][][];
 
 int b;
 int w;
+int nr;
 
 unsigned int16_t b_allowed[] = {25, 50, 100, 200, 400, 800, 1600};
 unsigned int8_t w_allowed[] = {1, 2 , 4, 8, 16, 32, 64}; // w = b/25
@@ -37,7 +38,7 @@ void theta(void) {
 
 void rho(void) {
   for (int z = 0; z < w; ++z) {
-    Ap[0]0[][z] = A[0][0][z];
+    Ap[0][0][z] = A[0][0][z];
   }
 
   int x = 1;
@@ -75,26 +76,51 @@ void chi(void) {
   }
 }
 
-void rc(int t) {
-  int R = 10000000;
-  if (t % 255 == 0) return 1;
-  for (int i = l; i =< t % 255; ++i) {
-    R = 0 || R;
+int rc(unsigned int t) {
+  if (t % 255 == 0) return l;
+
+  //uint8_t R = 0x80;
+  uint16_t R = 0x80;
+  for (int i = l; i < t % 255; ++i) {
+    // R = 0 || R
+    bit_t bit;
+    R = R & 0xfeff;
+    // R[0] = R[8] ^ R[0]
+    bit = ((R & 0x0001) ^ ((R & 0x0100) >> 8));
+    R ^= (-(uint16_t)bit ^ R) & (1U << 8);
+    // R[4] = R[8] ^ R[4]
+    bit = ((R & 0x0001) ^ ((R & 0x0010) >> 4));
+    R ^= (-(uint16_t)bit ^ R) & (1U << 4);
+    // R[5] = R[8] ^ R[5]
+    bit = ((R & 0x0001) ^ ((R & 0x0008) >> 3));
+    R ^= (-(uint16_t)bit ^ R) & (1U << 3);
+    // R[6] = R[8] ^ R[6]
+    bit = ((R & 0x0001) ^ ((R & 0x0004) >> 2));
+    R ^= (-(uint16_t)bit ^ R) & (1U << 2);
+    // R = TRUNC8[R]
+    R = R & 0x01fe >> 1;
   }
+  //return ((R & 0x0100) >> 8);
+  return ((R & 0x0080) >> 8);
+}
+
+void iota(void) {
+  for (int x = 0; x < 5; ++x) {
+    for (int y = 0; y < 5; ++y) {
+      for (int z = 0; z < w; ++z) {
+        Ap[x][y][z] = A[x][y][z];
+      }
+    }
+  }
+
 
 }
 
-void iota(void) {}
+void Rnd(bit_t _A[][][], int nr) {}
 
-void Keccak_p(void) {};
+void stringify(void) {}
 
-/**
- * @brief Keccak permutations
- *
- * @param w_ width
- * @param r_ number of rounds to run the permutations
- */
-void Keccak_Permutations(unsigned int16_t w_, unsigned int16_t r_) {}
+void destringify(void) {}
 
 string SHA3_224(void) {}
 
