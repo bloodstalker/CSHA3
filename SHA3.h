@@ -40,6 +40,18 @@ void rho(void) {
     Ap[0]0[][z] = A[0][0][z];
   }
 
+  int x = 1;
+  int y = 0;
+  int dummy;
+
+  for (int t = 0; t < 24; ++t) {
+    for (int z = 0; z < w; ++z) {
+      Ap[x][y][z] = A[x][y][(z - (t+1)(t+2)/2) % w];
+      dummy = 2*x + 3*y;
+      x = y;
+      y = dummy;
+    }
+  }
 
 }
 
@@ -63,7 +75,12 @@ void chi(void) {
   }
 }
 
-void rc(void) {
+void rc(int t) {
+  int R = 10000000;
+  if (t % 255 == 0) return 1;
+  for (int i = l; i =< t % 255; ++i) {
+    R = 0 || R;
+  }
 
 }
 
