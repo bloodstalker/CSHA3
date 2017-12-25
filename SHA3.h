@@ -3,22 +3,45 @@
 #include <stdlib.h>
 
 #define bit_t unsigned char
-bit_t A[][][];
-bit_t Ap[][][];
-bit_t B[][][];
-bit_t C[][];
-bit_t D[][];
-bit_t E[][][];
 
 int b;
 int w;
+int l;
+int ir;
 int nr;
+int pad;
+int c;
 
-unsigned int16_t b_allowed[] = {25, 50, 100, 200, 400, 800, 1600};
-unsigned int8_t w_allowed[] = {1, 2 , 4, 8, 16, 32, 64}; // w = b/25
-unsigned int8_t l_allowed[] = {0, 1, 2, 3, 4, 5, 6}; // l = log(b)
+int16_t b_allowed[] = {25, 50, 100, 200, 400, 800, 1600};
+int8_t w_allowed[] = {1, 2 , 4, 8, 16, 32, 64}; // w = b/25
+int8_t l_allowed[] = {0, 1, 2, 3, 4, 5, 6}; // l = log(b)
 
-void theta(void) {
+void destringify(bit_t S[b], bit_t A[5][5][w]) {
+  for (int x = 0; x < 5; ++x) {
+    for (int y = 0; y < 5; ++y) {
+      for (int z = 0; z < w; ++z) {
+        A[x][y][z] = S[w*(5*y + x) + z];
+      }
+    }
+  }
+}
+
+void stringify(bit_t S[b], bit_t A[5][5][w]) {
+  int counter = 0;
+  for (int i = 0; i < 5; ++i) {
+    for (int j = 0; j < 5; ++j) {
+      for (int k = 0; k < w; ++k) {
+        S[counter] = A[j][i][k];
+        counter++;
+      }
+    }
+  }
+}
+
+void theta(bit_t A[5][5][w], bit_t Ap[5][5][w]) {
+  bit_t C[5][w];
+  bit_t D[5][w];
+
   for (int x = 0; x < 5; ++x) {
     for (int z = 0; z < w; ++z) {
       C[x][z] = A[x][0][z] ^ A[x][1][z] ^ A[x][2][z] ^ A[x][3][z] ^ A[x][4][z];
@@ -36,7 +59,7 @@ void theta(void) {
 }
 
 
-void rho(void) {
+void rho(bit_t A[5][5][w], bit_t Ap[5][5][w]) {
   for (int z = 0; z < w; ++z) {
     Ap[0][0][z] = A[0][0][z];
   }
@@ -47,7 +70,7 @@ void rho(void) {
 
   for (int t = 0; t < 24; ++t) {
     for (int z = 0; z < w; ++z) {
-      Ap[x][y][z] = A[x][y][(z - (t+1)(t+2)/2) % w];
+      Ap[x][y][z] = A[x][y][(z - (t+1)*(t+2)/2) % w];
       dummy = 2*x + 3*y;
       x = y;
       y = dummy;
@@ -56,7 +79,7 @@ void rho(void) {
 
 }
 
-void pi(void) {
+void pi(bit_t A[5][5][w], bit_t Ap[5][5][w]) {
   for (int x = 0; x < 5; ++x) {
     for (int y = 0; y < 5; ++y) {
       for (int z = 0; z < w; ++z) {
@@ -66,7 +89,7 @@ void pi(void) {
   }
 }
 
-void chi(void) {
+void chi(bit_t A[5][5][w], bit_t Ap[5][5][w]) {
   for (int x = 0; x < 5; ++x) {
     for (int y = 0; y < 5; ++y) {
       for (int z = 0; z < w; ++z) {
@@ -100,11 +123,15 @@ int rc(unsigned int t) {
     // R = TRUNC8[R]
     R = R & 0x01fe >> 1;
   }
-  //return ((R & 0x0100) >> 8);
   return ((R & 0x0080) >> 8);
 }
 
-void iota(void) {
+void iota(bit_t A[5][5][w], bit_t Ap[5][5][w], int ir) {
+  bit_t RC[w];
+  for (int j = 0; j < l; ++j) {
+    RC[2^j - 1] = rc(j + ir);
+  }
+
   for (int x = 0; x < 5; ++x) {
     for (int y = 0; y < 5; ++y) {
       for (int z = 0; z < w; ++z) {
@@ -113,24 +140,52 @@ void iota(void) {
     }
   }
 
-
+  for (int z = 0; z < w; ++z) {
+    Ap[0][0][z] = A[0][0][z] ^ RC[z];
+  }
 }
 
-void Rnd(bit_t _A[][][], int nr) {}
 
-void stringify(void) {}
+void Rnd(bit_t A[5][5][w], bit_t Ap[5][5][w]) {
+  theta(A, Ap);
+  rho(A, Ap);
+  pi(A, Ap);
+  chi(A, Ap);
+  iota(A, Ap, ir);
+}
 
-void destringify(void) {}
+void KeccakP(bit_t S[b], int nr, bit_t A[5][5][w], bit_t Ap[5][5][w]) {
+  destringify(S, A);
+  for (int i = 0; i < nr; ++i) {
+    Rnd(A, Ap);
+  }
+}
 
-string SHA3_224(void) {}
+char* SHA3_224(void) {
+  int const1 = 448;
+  char* const2 = "01";
+  int const3 = 224;
+}
 
-string SHA3_256(void) {}
+char* SHA3_256(void) {
+  int const1 = 512;
+  char* const2 = "01";
+  int const3 = 256;
+}
 
-string SHA3_384(void) {}
+char* SHA3_384(void) {
+  int const1 = 768;
+  char* const2 = "01";
+  int const3 = 384;
+}
 
-string SHA3_512(void) {}
+char* SHA3_512(void) {
+  int const1 = 1024;
+  char* const2 = "01";
+  int const3 = 512;
+}
 
-string SHAKE128(void) {}
+char* SHAKE128(void) {}
 
-string SHAKE256(void) {}
+char* SHAKE256(void) {}
 
